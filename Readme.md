@@ -85,6 +85,7 @@ Project Name     : myproject
 * 「サービス」メニューからDirectory Serviceへ移動します。
 * ディレクトリ名「poc.example.com」のディレクトリIDを選択します。
 * アプリケーション管理の「AWSアプリおよびサービス」から「Amazon WorkSpaces」を選択します。
+![WorkSpaces](images/graph-image01.png)
 * ディレクトリ名「poc.example.com」のディレクトリを選択し、「アクション」から「登録」を選択します。
 * ポップアップする画面ではそのまま「登録」をクリックします。
 * ディレクトリの「登録済み」列が「はい」になったら、左側のペインから「WorkSpaces」に進みます。
