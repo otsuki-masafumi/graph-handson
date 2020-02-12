@@ -87,11 +87,14 @@ Project Name     : myproject
 * アプリケーション管理の「AWSアプリおよびサービス」から「Amazon WorkSpaces」を選択します。
 ![WorkSpaces](images/graph-image01.png)
 * ディレクトリ名「poc.example.com」のディレクトリを選択し、「アクション」から「登録」を選択します。
+![WorkSpaces](images/graph-image03.png)
 * ポップアップする画面ではそのまま「登録」をクリックします。
 * ディレクトリの「登録済み」列が「はい」になったら、左側のペインから「WorkSpaces」に進みます。
 * 「WorkSpacesの起動」を選択します。
 * 「ディレクトリの選択」画面でディレクトリ「poc.example.com」が選択されていることを確認して、「次のステップ」を選択します。
+![WorkSpaces](images/graph-image04.png)
 * 「ユーザーの特定」画面の「新規ユーザーを作成してディレクトリに追加します」にパラメータを入力します。
+![WorkSpaces](images/graph-image05.png)
 ```
 ユーザー名：　dsuser
 名 ： 任意
@@ -101,6 +104,7 @@ Eメール ： 受信できるメールアドレス
 * パラメータの入力が終わったことを確認して「ユーザーの作成」を選択します。
 * 画面下部にユーザーが追加されるので、「次のステップ」を選択します。
 * 「バンドルの選択」画面では、「Performance with Windows 10」を選択し、言語には「日本語」を選択し、画面下部の「次のステップ」を選択します。
+![WorkSpaces](images/graph-image07.png)
 * 次の「WorkSpacesの設定」では何も変更せずに「次のステップ」を選び、次に「WorkSpacesの起動」を選択します。
 
 WorkSpacesの起動が終わったら、登録したメールアドレスに通知が送信されます。起動までは最大20分かかるので、つぎのハンズオンステップに進みます。
@@ -112,14 +116,18 @@ WorkSpacesの起動が終わったら、登録したメールアドレスに通�
 ### 2-1. マネジメントコンソールからSageMaker Notebookを開く
 * 「サービス」メニューからAmazon SageMakerを選択し、左側のペインから「ノートブックインスタンス」を選択します。
 * 「ds-workshop-graph-ml」というノートブックインスタンスが作成されているので、「Jupyterを開く」を選択します。
+![WorkSpaces](images/graph-image08.png)
 * ブラウザの別タブでJupyterの画面が開くので、「step2_extract_node_and_edge」を選択します。
+![WorkSpaces](images/graph-image09.png)
 
 ### 2-2. 構造化データからグラフデータを生成する
 * Notebookの流れに従ってグラフデータを生成します
 * 「マネジメントコンソールからNeptuneにS3アクセスするIAMロールを付与する」セクションでは、マネジメントコンソールの画面に戻り、「サービス」メニューからAmazon Neptuneを選択してください。
 * 左側のペインから「クラスター」を選択し、存在しているクラスターを選択します。
 * つぎに、「クラスターアクション」から「IAMロールの管理」を選択してください。
+![WorkSpaces](images/graph-image10.png)
 * 「クラスターにIAMロールを追加」から「neptune-NeptuneLoadRole-xxxx」を選択して「ロールの追加」をクリックします。
+![WorkSpaces](images/graph-image11.png)
 * 「完了」クリックして設定を終了します。
 
 この操作で、NeptuneインスタンスがS3にアクセスする権限を追加したので、Notebookの画面に戻ってデータロードを行います。
@@ -131,6 +139,7 @@ Notebookでグラフデータを生成し、Neptuneに投入できたので、�
 * Amazon WorkSpacesからの通知メールが登録したメールアドレスに届いていることを確認します。
 * 「1. ユーザーのプロファイルを入力し、次のリンクから WorkSpaces クライアントをダウンロードします。」に続くリンクをクリックし、パスワードを設定します。
 * ハンズオンで利用している端末から [WorkSpaces クライアントのダウンロード](https://clients.amazonworkspaces.com/) を開き、端末に応じたクライアントをダウンロードします。
+![WorkSpaces](images/graph-image12.png)
 * ダウンロードしたWorkSpacesクライアントをインストールします
 * WorkSpacesクライアントが起動されたら、メールで受信した「登録コード」を入力します。
 * ユーザー名：dsuser, パスワード：先ほど指定したパスワード でWorkSpaces画面にログインします。
@@ -138,8 +147,9 @@ Notebookでグラフデータを生成し、Neptuneに投入できたので、�
 ### 3-2. ブラウザを起動してGraphexpを開く
 * Firefoxを起動し、アドレス欄にCloudFormationのNeptuneスタック 出力タブから取得した「WebServerDnsName」の値を入力します。
 * CloudFormationで構成したWebサーバの画面が起動します。
+![WorkSpaces](images/graph-image13.png)
 * 「Server Settings」にNeptuneのEndpointを設定し、Closeを選択します。
-
+![WorkSpaces](images/graph-image14.png)
 
 ### 3-3. グラフデータを取得し、インタラクティブに探索する
 
