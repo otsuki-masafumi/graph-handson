@@ -86,14 +86,17 @@ Project Name     : myproject
 * ディレクトリ名「poc.example.com」のディレクトリIDを選択します。
 * アプリケーション管理の「AWSアプリおよびサービス」から「Amazon WorkSpaces」を選択します。
 ![WorkSpaces](images/graph-image01.png)
+<br />
 * ディレクトリ名「poc.example.com」のディレクトリを選択し、「アクション」から「登録」を選択します。
 ![WorkSpaces](images/graph-image03.png)
+<br />
 * ポップアップする画面ではそのまま「登録」をクリックします。
 * ディレクトリの「登録済み」列が「はい」になったら、左側のペインから「WorkSpaces」に進みます。
 * 「WorkSpacesの起動」を選択します。
 * 「ディレクトリの選択」画面でディレクトリ「poc.example.com」が選択されていることを確認して、「次のステップ」を選択します。
 ![WorkSpaces](images/graph-image04.png)
-* 「ユーザーの特定」画面の「新規ユーザーを作成してディレクトリに追加します」にパラメータを入力します。
+<br />
+* 「新規ユーザーを作成してディレクトリに追加します」にパラメータを入力します。
 ![WorkSpaces](images/graph-image05.png)
 ```
 ユーザー名：　dsuser
@@ -105,6 +108,7 @@ Eメール ： 受信できるメールアドレス
 * 画面下部にユーザーが追加されるので、「次のステップ」を選択します。
 * 「バンドルの選択」画面では、「Performance with Windows 10」を選択し、言語には「日本語」を選択し、画面下部の「次のステップ」を選択します。
 ![WorkSpaces](images/graph-image07.png)
+<br />
 * 次の「WorkSpacesの設定」では何も変更せずに「次のステップ」を選び、次に「WorkSpacesの起動」を選択します。
 
 WorkSpacesの起動が終わったら、登録したメールアドレスに通知が送信されます。起動までは最大20分かかるので、つぎのハンズオンステップに進みます。
@@ -117,6 +121,7 @@ WorkSpacesの起動が終わったら、登録したメールアドレスに通�
 * 「サービス」メニューからAmazon SageMakerを選択し、左側のペインから「ノートブックインスタンス」を選択します。
 * 「ds-workshop-graph-ml」というノートブックインスタンスが作成されているので、「Jupyterを開く」を選択します。
 ![WorkSpaces](images/graph-image08.png)
+<br />
 * ブラウザの別タブでJupyterの画面が開くので、「step2_extract_node_and_edge」を選択します。
 ![WorkSpaces](images/graph-image09.png)
 
@@ -126,8 +131,10 @@ WorkSpacesの起動が終わったら、登録したメールアドレスに通�
 * 左側のペインから「クラスター」を選択し、存在しているクラスターを選択します。
 * つぎに、「クラスターアクション」から「IAMロールの管理」を選択してください。
 ![WorkSpaces](images/graph-image10.png)
+<br />
 * 「クラスターにIAMロールを追加」から「neptune-NeptuneLoadRole-xxxx」を選択して「ロールの追加」をクリックします。
 ![WorkSpaces](images/graph-image11.png)
+<br />
 * 「完了」クリックして設定を終了します。
 
 この操作で、NeptuneインスタンスがS3にアクセスする権限を追加したので、Notebookの画面に戻ってデータロードを行います。
@@ -148,9 +155,34 @@ Notebookでグラフデータを生成し、Neptuneに投入できたので、�
 * Firefoxを起動し、アドレス欄にCloudFormationのNeptuneスタック 出力タブから取得した「WebServerDnsName」の値を入力します。
 * CloudFormationで構成したWebサーバの画面が起動します。
 ![WorkSpaces](images/graph-image13.png)
-* 「Server Settings」にNeptuneのEndpointを設定し、Closeを選択します。
+<br />
+* 「Server Settings」の「Server address」にNeptuneのEndpointを設定し、Closeを選択して保存します。
+NeptuneのEndpointは、マネジメントコンソールのCloudFormation画面から「Neptuneスタック → 出力」で確認できます
 ![WorkSpaces](images/graph-image14.png)
 
 ### 3-3. グラフデータを取得し、インタラクティブに探索する
+* Neptuneに格納されたグラフデータの統計情報を取得するため「Get graph info」ボタンをクリックします。
+![WorkSpaces](images/graph-image16.png)
+* グラフに表示するプロパティを選択するため、以下のチェックボックスとプルダウンメニューを操作します。
+```
+name: チェックを入れる
+age: チェックを入れる
+Node color by:  label
+```
+* 「From Queries」をクリックして取得するグラフデータを指定します。ここでは「Node label」に「post_office」と入力します。
+![WorkSpaces](images/graph-image17.png)
+<br />
+* 入力が終わったら「Search」をクリックします。3つのノードが表示されるはずです。（条件の入力画面は「From Queries」ボタンをクリックすると格納できます
+![WorkSpaces](images/graph-image18.png)
+<br />
+* ノードのうちどれか一つをクリックすると、その拠点に所属する社員のデータが表示されます。
+* 社員ノードのどれかをクリックすると、その社員が持っている顧客ノードが表示され、契約情報がエッジとして表示されます。
+![WorkSpaces](images/graph-image19.png)
+<br />
+* 顧客ノードからはさらに被保険者のノードが連結されています。
+![WorkSpaces](images/graph-image20.png)
+<br />
+
+これらのノードとエッジはハンズオンのステップ2-2で生成したcsvデータを元にしています。そのため、分析の関心事に応じて生成するグラフデータを変更することで、異なる関係性を可視化することが可能です。
 
 ## 4. 新たなグラフデータを追加する
