@@ -122,7 +122,9 @@ WorkSpacesの起動が終わったら、登録したメールアドレスに通�
 * 「ds-workshop-graph-ml」というノートブックインスタンスが作成されているので、「Jupyterを開く」を選択します。
 ![WorkSpaces](images/graph-image08.png)
 <br />
+
 * ブラウザの別タブでJupyterの画面が開くので、「step2_extract_node_and_edge」を選択します。
+
 ![WorkSpaces](images/graph-image09.png)
 
 ### 2-2. 構造化データからグラフデータを生成する
@@ -130,11 +132,15 @@ WorkSpacesの起動が終わったら、登録したメールアドレスに通�
 * 「マネジメントコンソールからNeptuneにS3アクセスするIAMロールを付与する」セクションでは、マネジメントコンソールの画面に戻り、「サービス」メニューからAmazon Neptuneを選択してください。
 * 左側のペインから「クラスター」を選択し、存在しているクラスターを選択します。
 * つぎに、「クラスターアクション」から「IAMロールの管理」を選択してください。
+
 ![WorkSpaces](images/graph-image10.png)
 <br />
+
 * 「クラスターにIAMロールを追加」から「neptune-NeptuneLoadRole-xxxx」を選択して「ロールの追加」をクリックします。
+
 ![WorkSpaces](images/graph-image11.png)
 <br />
+
 * 「完了」クリックして設定を終了します。
 
 この操作で、NeptuneインスタンスがS3にアクセスする権限を追加したので、Notebookの画面に戻ってデータロードを行います。
@@ -146,6 +152,7 @@ Notebookでグラフデータを生成し、Neptuneに投入できたので、�
 * Amazon WorkSpacesからの通知メールが登録したメールアドレスに届いていることを確認します。
 * 「1. ユーザーのプロファイルを入力し、次のリンクから WorkSpaces クライアントをダウンロードします。」に続くリンクをクリックし、パスワードを設定します。
 * ハンズオンで利用している端末から [WorkSpaces クライアントのダウンロード](https://clients.amazonworkspaces.com/) を開き、端末に応じたクライアントをダウンロードします。
+
 ![WorkSpaces](images/graph-image12.png)
 * ダウンロードしたWorkSpacesクライアントをインストールします
 * WorkSpacesクライアントが起動されたら、メールで受信した「登録コード」を入力します。
@@ -154,10 +161,13 @@ Notebookでグラフデータを生成し、Neptuneに投入できたので、�
 ### 3-2. ブラウザを起動してGraphexpを開く
 * Firefoxを起動し、アドレス欄にCloudFormationのNeptuneスタック 出力タブから取得した「WebServerDnsName」の値を入力します。
 * CloudFormationで構成したWebサーバの画面が起動します。
+
 ![WorkSpaces](images/graph-image13.png)
 <br />
+
 * 「Server Settings」の「Server address」にNeptuneのEndpointを設定し、Closeを選択して保存します。
 NeptuneのEndpointは、マネジメントコンソールのCloudFormation画面から「Neptuneスタック → 出力」で確認できます
+
 ![WorkSpaces](images/graph-image14.png)
 
 ### 3-3. グラフデータを取得し、インタラクティブに探索する
@@ -172,16 +182,20 @@ Node color by:  label
 * 「From Queries」をクリックして取得するグラフデータを指定します。ここでは「Node label」に「post_office」と入力します。
 ![WorkSpaces](images/graph-image17.png)
 <br />
+
 * 入力が終わったら「Search」をクリックします。3つのノードが表示されるはずです。（条件の入力画面は「From Queries」ボタンをクリックすると格納できます
 ![WorkSpaces](images/graph-image18.png)
+
 <br />
 * ノードのうちどれか一つをクリックすると、その拠点に所属する社員のデータが表示されます。
 * 社員ノードのどれかをクリックすると、その社員が持っている顧客ノードが表示され、契約情報がエッジとして表示されます。
 ![WorkSpaces](images/graph-image19.png)
 <br />
+
 * 顧客ノードからはさらに被保険者のノードが連結されています。
 ![WorkSpaces](images/graph-image20.png)
 <br />
+
 
 これらのノードとエッジはハンズオンのステップ2-2で生成したcsvデータを元にしています。そのため、分析の関心事に応じて生成するグラフデータを変更することで、異なる関係性を可視化することが可能です。
 
