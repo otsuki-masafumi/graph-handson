@@ -55,7 +55,7 @@ myvpc
 スタックの名前    : neptune　
 Environment Type : Dev
 Project Name     : myproject
-Commonpassword :
+Commonpassword : IAMユーザーのログインパスワードと同じ
 KeyPairName: neptune-web
 ```
   * 「次へ」ボタン →　オブション入力画面はデフォルトのまま「次へ」ボタン→
@@ -182,6 +182,7 @@ NeptuneのEndpointは、マネジメントコンソールのCloudFormation画面
 * Neptuneに格納されたグラフデータの統計情報を取得するため「Get graph info」ボタンをクリックします。
 ![WorkSpaces](images/graph-image16.png)
 * グラフに表示するプロパティを選択するため、以下のチェックボックスとプルダウンメニューを操作します。
+
 ```
 name: チェックを入れる
 age: チェックを入れる
