@@ -43,7 +43,7 @@ myvpc
 
 ### 1-3. CloudFormationを利用してAmazon Neptune、Webサーバを作成する
 
-グラフデータベースであるAmazon Neptune、グラフを可視化するためのWebサーバを作成します。
+グラフデータベースであるAmazon Neptune、グラフを可視化するためのWebサーバ（EC2）を作成します。
 
 * 以下の手順でCloudFormationスタックを作成します。
   * 「サービス」 → 「CloudFormation」 → 「スタック」→  「スタックの作成」ボタン→
@@ -82,20 +82,25 @@ Project Name     : myproject
 * ステータスが "CREATE_COMPLETE"　になるまで待ちます。
 
 ### 1-5. WorkSpacesでデスクトップを作成する
+WebサーバにアクセスするためのクライアントとしてWorkSpacesを利用してWindows10のデスクトップをAWSアカウント内に作成します。これは、ハンズオンで利用するグラフ可視化アプリ（Graphexp）が、ブラウザからNeptuneへの直接アクセスを必要とするためです。  
+
 * 「サービス」メニューからDirectory Serviceへ移動します。
 * ディレクトリ名「poc.example.com」のディレクトリIDを選択します。
 * アプリケーション管理の「AWSアプリおよびサービス」から「Amazon WorkSpaces」を選択します。
 ![WorkSpaces](images/graph-image01.png)
 <br />
+
 * ディレクトリ名「poc.example.com」のディレクトリを選択し、「アクション」から「登録」を選択します。
 ![WorkSpaces](images/graph-image03.png)
 <br />
+
 * ポップアップする画面ではそのまま「登録」をクリックします。
 * ディレクトリの「登録済み」列が「はい」になったら、左側のペインから「WorkSpaces」に進みます。
 * 「WorkSpacesの起動」を選択します。
 * 「ディレクトリの選択」画面でディレクトリ「poc.example.com」が選択されていることを確認して、「次のステップ」を選択します。
 ![WorkSpaces](images/graph-image04.png)
 <br />
+
 * 「新規ユーザーを作成してディレクトリに追加します」にパラメータを入力します。
 ![WorkSpaces](images/graph-image05.png)
 ```
@@ -109,13 +114,15 @@ Eメール ： 受信できるメールアドレス
 * 「バンドルの選択」画面では、「Performance with Windows 10」を選択し、言語には「日本語」を選択し、画面下部の「次のステップ」を選択します。
 ![WorkSpaces](images/graph-image07.png)
 <br />
+
 * 次の「WorkSpacesの設定」では何も変更せずに「次のステップ」を選び、次に「WorkSpacesの起動」を選択します。
+<br />
 
 WorkSpacesの起動が終わったら、登録したメールアドレスに通知が送信されます。起動までは最大20分かかるので、つぎのハンズオンステップに進みます。
 
 
 ## 2. グラフデータ作成
-このステップでは、構造化データからグラフデータを作成します。
+このステップでは、構造化データから関係性（ノードとエッジ）を抽出してグラフデータを作成し、Neptuneに投入します。
 
 ### 2-1. マネジメントコンソールからSageMaker Notebookを開く
 * 「サービス」メニューからAmazon SageMakerを選択し、左側のペインから「ノートブックインスタンス」を選択します。
@@ -126,6 +133,7 @@ WorkSpacesの起動が終わったら、登録したメールアドレスに通�
 * ブラウザの別タブでJupyterの画面が開くので、「step2_extract_node_and_edge」を選択します。
 
 ![WorkSpaces](images/graph-image09.png)
+<br />
 
 ### 2-2. 構造化データからグラフデータを生成する
 * Notebookの流れに従ってグラフデータを生成します
@@ -185,8 +193,8 @@ Node color by:  label
 
 * 入力が終わったら「Search」をクリックします。3つのノードが表示されるはずです。（条件の入力画面は「From Queries」ボタンをクリックすると格納できます
 ![WorkSpaces](images/graph-image18.png)
-
 <br />
+
 * ノードのうちどれか一つをクリックすると、その拠点に所属する社員のデータが表示されます。
 * 社員ノードのどれかをクリックすると、その社員が持っている顧客ノードが表示され、契約情報がエッジとして表示されます。
 ![WorkSpaces](images/graph-image19.png)
@@ -200,3 +208,4 @@ Node color by:  label
 これらのノードとエッジはハンズオンのステップ2-2で生成したcsvデータを元にしています。そのため、分析の関心事に応じて生成するグラフデータを変更することで、異なる関係性を可視化することが可能です。
 
 ## 4. 新たなグラフデータを追加する
+（ディスカッション）関係性の追加や、ノードの変更など、ステップ2,3のグラフに変更を加えてみましょう。
