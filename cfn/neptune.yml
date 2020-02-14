@@ -1,0 +1,235 @@
+﻿# File          : neptune-lab.yml
+# Purpose       : To create Amazon Neptune and related resources.
+# Author        : Masafumi Otsuki (AWS)
+# Last Updated  : 2020-02-07
+#
+# -- Note --
+# This template is intended for demo/lab user.
+# Don't put non-demo data as the cluster become publicly accessible.
+#
+# Run this template after vpc.yml has run.
+#
+
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Common Parameters
+        Parameters:
+          - EnvType
+          - ProjectName
+          - CommonPassword
+    ParameterLabels:
+      EnvType:
+        default: Environment Type
+      ProjectName:
+        default: Project Name
+      CommonPassword:
+        default: Common Password
+
+Parameters:
+  EnvType:
+    Description: Environment type. (Prod, Dev)
+    Type: String
+    Default: Dev
+    AllowedValues:
+    - Prod
+    - Dev
+  ProjectName:
+    Description: Name of the project.
+    Type: String
+    Default: myproject
+    AllowedPattern: '([a-zA-Z0-9])+'
+  KeyPairName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: neptune-web
+    ConstraintDescription: Must be a name of an existing EC2 KeyPair.
+  CommonPassword:
+    Description: Password for MAD, RS etc. Must be set.
+    Type: String
+    MinLength: 8
+    MaxLength: 64
+    AllowedPattern: "[a-zA-Z0-9#!.@+-=|^]*"
+    NoEcho: true
+  NeptuneInstanceType:
+    Description: Type of instance to be provisioned.
+    Type: String
+    Default: db.r5.large
+    AllowedValues:
+    - db.r5.large
+    - db.r5.xlarge
+    - db.r5.2xlarge
+    - db.r5.4xlarge
+
+Conditions:
+  ProdEnv: !Equals [!Ref EnvType, Prod]
+  DevEnv: !Equals [!Ref EnvType, Dev]
+
+Resources:
+  NeptuneCluster:
+    Type: AWS::Neptune::DBCluster
+    DependsOn:
+      - DBPrivateSubnetGroup
+    Properties:
+      VpcSecurityGroupIds:
+        - !GetAtt NeptuneSecurityGroup.GroupId
+      DBSubnetGroupName: !Ref DBPrivateSubnetGroup
+  DBInstance:
+    Type: AWS::Neptune::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref NeptuneCluster
+      DBInstanceClass: !Ref NeptuneInstanceType
+      DBSubnetGroupName: !Ref DBPrivateSubnetGroup
+  DBPrivateSubnetGroup:
+    Type: AWS::Neptune::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnet group for the Neptune cluster.
+      SubnetIds:
+          - { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "privatesubnet1id"]] }
+          - { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "privatesubnet2id"]] }
+  NeptuneLoadRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - rds.amazonaws.com
+            Action:
+              - sts:AssumeRole
+  NeptuneAllowS3:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AllowS3
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Action: s3:*
+            Resource: "*"
+      Roles:
+        - !Ref NeptuneLoadRole
+  NeptuneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow Neptune Access From Private Subnet
+      VpcId: { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "vpcid"]] }
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 8182
+        ToPort: 8182
+        CidrIp: 0.0.0.0/0
+
+  DirectoryForWorkspaces:
+    Type: AWS::DirectoryService::SimpleAD
+    Properties:
+      Name: "poc.example.com"
+      Password: !Ref CommonPassword
+      Size: "Small"
+      VpcSettings:
+        SubnetIds:
+          - { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "privatesubnet1id"]] }
+          - { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "privatesubnet2id"]] }
+        VpcId: { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "vpcid"]] }
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+      KeyName: !Ref KeyPairName
+      ImageId: ami-011facbea5ec0363b
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      SubnetId: { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "publicsubnet1id"]] }
+      UserData: !Base64
+        Fn::Sub: |
+          #!/bin/bash
+          sudo yum -y update
+
+          # Setup apache and graphexp
+          sudo yum -y install httpd git
+
+          # pull graphexp from github and setup
+          sudo git clone https://github.com/erandal/graphexp.git /tmp/graphexp
+          cd /tmp/graphexp
+
+          # Change parameter to be fit neptune requirement
+          sudo sed -i".org" -e "s/const SINGLE_COMMANDS_AND_NO_VARS = false;/const SINGLE_COMMANDS_AND_NO_VARS = true;/" scripts/graphConf.js
+
+          # Enable SSL for websocket
+          cat scripts/graphioGremlin.js  |awk '/ws:/{gsub("ws:","wss:")};{print $0}' >tmp.js
+          mv -f tmp.js scripts/graphioGremlin.js
+
+          sudo cp -pr . /var/www/html
+
+          # Configure httpd
+          sudo service httpd start
+          sudo service httpd status
+          sudo chkconfig httpd on
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2InstanceRole
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      VpcId: { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "vpcid"]] }
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        #CidrIp: !Ref 'SSHLocation'
+        SourcePrefixListId: pl-bea742d7
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "vpcCidrBlock"]] }
+
+Outputs:
+  NeptuneClusterEndpoint:
+    Description: Neptune cluster endpoint.
+    Value: !Join
+      - ':'
+      - - !GetAtt
+          - NeptuneCluster
+          - Endpoint
+        - !GetAtt
+          - NeptuneCluster
+          - Port
+    Export:
+      Name: !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "neptuneclusterendpoint"]]
+  NeptuneLoadFromS3Arn:
+    Description: Arn of Load role to be used by Neptune
+    Value: !GetAtt
+      - NeptuneLoadRole
+      - Arn
+    Export:
+      Name: !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "s3loadrolearn"]]
+  WebServerDnsName:
+    Description: Private DNS name of Web server.
+    Value: !GetAtt
+      - EC2Instance
+      - PrivateDnsName

@@ -1,0 +1,97 @@
+﻿# File          : sagemaker.yml
+# Purpose       : To create Amazon SageMaker Notebook instance.
+# Author        : Masafumi Otsuki (AWS)
+# Last Updated  : 2020-02-07
+#
+# -- Note --
+# This template is intended for demo/lab user.
+# Don't put non-demo data as the cluster become publicly accessible.
+#
+# Run this template after vpc.yml has run.
+#
+
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Common Parameters
+        Parameters:
+          - EnvType
+          - ProjectName
+    ParameterLabels:
+      EnvType:
+        default: Environment Type
+      ProjectName:
+        default: Project Name
+
+Parameters:
+  EnvType:
+    Description: Environment type. (Prod, Dev)
+    Type: String
+    Default: Dev
+    AllowedValues:
+    - Prod
+    - Dev
+  ProjectName:
+    Description: Name of the project.
+    Type: String
+    Default: myproject
+    AllowedPattern: '([a-zA-Z0-9])+'
+  NotebookInstanceType:
+    Description: Notebook instance type.
+    Type: String
+    Default: ml.t3.large
+    AllowedValues:
+    - ml.t2.medium
+    - ml.t3.medium
+    - ml.t3.large
+    - ml.t3.xlarge
+    - ml.t3.2xlarge
+
+Resources:
+  SageMakerNotebookInstance:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      DefaultCodeRepository: https://github.com/otsuki-masafumi/graph-handson.git
+      AdditionalCodeRepositories:
+        - https://github.com/otsuki-masafumi/sagemaker-redshift.git
+      DirectInternetAccess: Enabled
+      InstanceType: !Ref 'NotebookInstanceType'
+      NotebookInstanceName: 'ds-workshop-graph-ml'
+      RoleArn: !GetAtt [ SageMakerNotebookRole, Arn ]
+      RootAccess: Enabled
+      SecurityGroupIds:
+        - Ref: 'SageMakerNotebookSG'
+      SubnetId: { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "publicsubnet1id"]] }
+      VolumeSizeInGB: 5
+  SageMakerNotebookRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: sagemaker.amazonaws.com
+      Policies:
+      - PolicyName: "get-redshift-credentials"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Resource: "*"
+            Action:
+            - "redshift:GetClusterCredentials"
+            - "redshift:CreateClusterUser"
+            - "redshift:JoinGroup"
+            - "cloudformation:DescribeStacks"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  SageMakerNotebookSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for SageMaker notebook instance
+      VpcId: { "Fn::ImportValue": !Join [ "-", [ "Ref":"EnvType", "Ref":"ProjectName", "vpcid"]] }
